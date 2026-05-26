@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FractureAI — 骨折智能分析</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0f1626;
+  --bg3:#151e30;
+  --card:#111827;
+  --border:#1e2d47;
+  --border2:#253552;
+  --accent:#3b82f6;
+  --accent2:#06b6d4;
+  --accent3:#10b981;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+  --text3:#64748b;
+  --radius:12px;
+  --radius2:8px;
+}
+body{
+  font-family:'Sora',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* Grid bg */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,0.04) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+  z-index:0;
+}
+/* Glow orbs */
+body::after{
+  content:'';
+  position:fixed;
+  top:-200px;left:-200px;
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(59,130,246,0.08) 0%,transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+.orb2{
+  position:fixed;
+  bottom:-200px;right:-200px;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(6,182,212,0.06) 0%,transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* Header */
+header{
+  position:sticky;top:0;
+  z-index:100;
+  background:rgba(10,15,26,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;
+}
+.header-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  height:60px;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-size:1.1rem;font-weight:700;
+  letter-spacing:-0.02em;
+}
+.logo-icon{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+.logo span{color:var(--accent2);}
+
+/* Lang switcher */
+.lang-btn{
+  display:flex;align-items:center;gap:6px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:6px 14px;
+  cursor:pointer;
+  font-family:'Sora',sans-serif;
+  font-size:13px;
+  color:var(--text2);
+  transition:all .2s;
+}
+.lang-btn:hover{border-color:var(--accent);color:var(--text);}
+.lang-dropdown{
+  position:relative;
+}
+.lang-menu{
+  display:none;
+  position:absolute;right:0;top:calc(100% + 8px);
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:var(--radius2);
+  overflow:hidden;
+  min-width:140px;
+  z-index:200;
+  box-shadow:0 20px 40px rgba(0,0,0,0.4);
+}
+.lang-menu.open{display:block;}
+.lang-option{
+  padding:10px 16px;
+  font-size:13px;
+  cursor:pointer;
+  transition:background .15s;
+  display:flex;align-items:center;gap:8px;
+}
+.lang-option:hover{background:var(--border);}
+.lang-option.active{color:var(--accent);}
+
+/* Main */
+main{
+  position:relative;
+  z-index:1;
+  max-width:1100px;
+  margin:0 auto;
+  padding:3rem 2rem 4rem;
+}
+
+/* Hero */
+.hero{text-align:center;margin-bottom:3rem;}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(59,130,246,0.1);
+  border:1px solid rgba(59,130,246,0.25);
+  border-radius:20px;
+  padding:6px 14px;
+  font-size:12px;
+  color:var(--accent2);
+  margin-bottom:1.5rem;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+}
+.badge-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--accent2);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.hero h1{
+  font-size:clamp(2rem,5vw,3.2rem);
+  font-weight:700;
+  letter-spacing:-0.04em;
+  line-height:1.15;
+  margin-bottom:1rem;
+  background:linear-gradient(135deg,#e2e8f0 30%,#94a3b8);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero p{
+  font-size:1.05rem;
+  color:var(--text2);
+  max-width:560px;margin:0 auto 2rem;
+  line-height:1.7;
+}
+.disclaimer-banner{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(245,158,11,0.1);
+  border:1px solid rgba(245,158,11,0.25);
+  border-radius:8px;
+  padding:10px 16px;
+  font-size:12.5px;
+  color:var(--warn);
+  max-width:620px;
+  text-align:left;
+  line-height:1.5;
+}
+.disclaimer-banner svg{flex-shrink:0;}
+
+/* Upload zone */
+.upload-zone{
+  border:2px dashed var(--border2);
+  border-radius:var(--radius);
+  padding:3rem 2rem;
+  text-align:center;
+  cursor:pointer;
+  transition:all .3s;
+  background:var(--bg3);
+  position:relative;
+  overflow:hidden;
+}
+.upload-zone:hover,.upload-zone.dragover{
+  border-color:var(--accent);
+  background:rgba(59,130,246,0.05);
+}
+.upload-zone.has-image{
+  border-style:solid;
+  border-color:var(--border2);
+  padding:0;
+}
+.upload-icon{
+  width:60px;height:60px;
+  background:rgba(59,130,246,0.1);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1rem;
+}
+.upload-zone h3{font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;}
+.upload-zone p{font-size:0.875rem;color:var(--text2);}
+.upload-types{
+  display:flex;gap:8px;justify-content:center;margin-top:1rem;
+  flex-wrap:wrap;
+}
+.type-chip{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:3px 10px;
+  font-size:11px;
+  font-family:'JetBrains Mono',monospace;
+  color:var(--text3);
+}
+
+/* Canvas container */
+.canvas-container{
+  position:relative;
+  width:100%;
+  display:none;
+}
+.canvas-container canvas{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius:var(--radius);
+}
+.img-overlay-btn{
+  position:absolute;top:12px;right:12px;
+  background:rgba(10,15,26,0.85);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:6px 12px;
+  font-size:12px;
+  color:var(--text2);
+  cursor:pointer;
+  font-family:'Sora',sans-serif;
+  transition:all .2s;
+}
+.img-overlay-btn:hover{color:var(--text);border-color:var(--accent);}
+
+/* Analyze btn */
+.analyze-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;
+  padding:14px;
+  background:linear-gradient(135deg,var(--accent),#2563eb);
+  border:none;border-radius:var(--radius2);
+  color:#fff;
+  font-family:'Sora',sans-serif;
+  font-size:1rem;font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  margin-top:1rem;
+  letter-spacing:-0.01em;
+}
+.analyze-btn:hover{transform:translateY(-1px);box-shadow:0 8px 25px rgba(59,130,246,0.35);}
+.analyze-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
+.analyze-btn .spinner{
+  width:18px;height:18px;
+  border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  display:none;
+}
+.analyze-btn.loading .spinner{display:block;}
+.analyze-btn.loading .btn-text{opacity:0.7;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Results */
+.results{
+  display:none;
+  margin-top:1.5rem;
+}
+.results-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:1rem;
+}
+.results-header h2{
+  font-size:1rem;font-weight:600;
+  letter-spacing:-0.01em;
+}
+.result-badge{
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;font-weight:600;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+}
+.result-badge.positive{background:rgba(239,68,68,0.15);color:#f87171;}
+.result-badge.negative{background:rgba(16,185,129,0.15);color:#34d399;}
+.result-badge.uncertain{background:rgba(245,158,11,0.15);color:#fbbf24;}
+
+/* Info grid */
+.info-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px;
+  margin-bottom:1rem;
+}
+.info-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius2);
+  padding:1rem;
+}
+.info-card-label{
+  font-size:11px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.06em;
+  margin-bottom:6px;
+}
+.info-card-value{
+  font-size:1.2rem;font-weight:600;
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+}
+.info-card-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+
+/* Confidence bar */
+.conf-bar-wrap{margin-top:6px;}
+.conf-bar{
+  height:4px;border-radius:2px;
+  background:var(--border);
+  overflow:hidden;
+}
+.conf-bar-fill{
+  height:100%;border-radius:2px;
+  transition:width 1s ease;
+}
+
+/* Analysis text */
+.analysis-box{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius2);
+  padding:1.25rem;
+  margin-bottom:1rem;
+}
+.analysis-box h3{
+  font-size:13px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.06em;
+  margin-bottom:0.75rem;
+  display:flex;align-items:center;gap:6px;
+}
+.analysis-text{
+  font-size:0.9rem;line-height:1.75;color:var(--text2);
+}
+.analysis-text strong{color:var(--text);font-weight:600;}
+
+/* Finding items */
+.finding-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid var(--border);
+}
+.finding-item:last-child{border-bottom:none;}
+.finding-dot{
+  width:8px;height:8px;border-radius:50%;
+  margin-top:5px;flex-shrink:0;
+}
+.finding-text{font-size:0.875rem;color:var(--text2);line-height:1.6;}
+.finding-text strong{color:var(--text);}
+
+/* Annotations list */
+.annotation-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;
+  background:var(--bg3);
+  border-radius:6px;
+  margin-bottom:6px;
+  font-size:13px;
+}
+.ann-color{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.ann-label{color:var(--text);}
+.ann-conf{margin-left:auto;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;}
+
+/* Warning box */
+.warn-box{
+  background:rgba(239,68,68,0.08);
+  border:1px solid rgba(239,68,68,0.2);
+  border-radius:var(--radius2);
+  padding:1rem 1.25rem;
+  display:flex;gap:12px;
+  font-size:0.875rem;
+  color:#fca5a5;
+  line-height:1.6;
+}
+
+/* Footer */
+footer{
+  position:relative;z-index:1;
+  border-top:1px solid var(--border);
+  padding:1.5rem 2rem;
+  text-align:center;
+  color:var(--text3);
+  font-size:12px;
+  line-height:1.7;
+}
+
+/* Responsive */
+@media(max-width:600px){
+  main{padding:2rem 1rem 3rem;}
+  header{padding:0 1rem;}
+  .hero h1{font-size:1.8rem;}
+  .info-grid{grid-template-columns:1fr 1fr;}
+}
+
+/* Hidden file input */
+#fileInput{display:none;}
+
+/* Progress */
+.progress-wrap{
+  display:none;
+  margin-top:1rem;
+}
+.progress-bar{
+  height:3px;
+  background:var(--border);
+  border-radius:2px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:2px;
+}
+.progress-label{
+  font-size:12px;color:var(--text3);
+  margin-top:6px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* Toggle annotations */
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:0.75rem;
+}
+.toggle{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--text2);cursor:pointer;
+}
+.toggle-switch{
+  width:36px;height:20px;
+  background:var(--border2);
+  border-radius:10px;
+  position:relative;
+  transition:background .2s;
+}
+.toggle-switch.on{background:var(--accent);}
+.toggle-knob{
+  position:absolute;
+  top:2px;left:2px;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:#fff;
+  transition:left .2s;
+}
+.toggle-switch.on .toggle-knob{left:18px;}
+</style>
+</head>
+<body>
+<div class="orb2"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🦴</div>
+      Fracture<span>AI</span>
+    </div>
+    <div class="lang-dropdown">
+      <button class="lang-btn" onclick="toggleLangMenu()">
+        🌐 <span id="langLabel">中文</span> ▾
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <div class="lang-option active" onclick="setLang('zh')">🇨🇳 中文</div>
+        <div class="lang-option" onclick="setLang('en')">🇺🇸 English</div>
+        <div class="lang-option" onclick="setLang('ja')">🇯🇵 日本語</div>
+        <div class="lang-option" onclick="setLang('ko')">🇰🇷 한국어</div>
+        <div class="lang-option" onclick="setLang('es')">🇪🇸 Español</div>
+        <div class="lang-option" onclick="setLang('fr')">🇫🇷 Français</div>
+        <div class="lang-option" onclick="setLang('de')">🇩🇪 Deutsch</div>
+        <div class="lang-option" onclick="setLang('ar')">🇸🇦 العربية</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      <span data-i18n="badge">AI 医学影像分析</span>
+    </div>
+    <h1 data-i18n="h1">上传X光片，<br><em>AI立即分析骨折</em></h1>
+    <p data-i18n="subtitle">基于先进AI视觉模型，自动识别骨折位置、类型和严重程度，并在图像上标注出可疑区域。</p>
+    <div class="disclaimer-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span data-i18n="disclaimer">⚠️ 本工具仅供辅助参考，不能替代专业医生诊断。检测结果请以执业医师的判断为准。</span>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="upload-zone" id="uploadZone" onclick="triggerUpload()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+    <div id="uploadPrompt">
+      <div class="upload-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <h3 data-i18n="uploadTitle">点击或拖拽上传X光影像</h3>
+      <p data-i18n="uploadSub">支持X光、CT扫描图像文件</p>
+      <div class="upload-types">
+        <span class="type-chip">JPG</span>
+        <span class="type-chip">PNG</span>
+        <span class="type-chip">WEBP</span>
+        <span class="type-chip">BMP</span>
+        <span class="type-chip">GIF</span>
+      </div>
+    </div>
+    <div class="canvas-container" id="canvasContainer">
+      <canvas id="canvas"></canvas>
+      <button class="img-overlay-btn" onclick="resetImage(event)" data-i18n="changeImg">更换图片</button>
+    </div>
+  </div>
+  <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">正在分析...</div>
+  </div>
+
+  <!-- Analyze Button -->
+  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()" disabled>
+    <div class="spinner"></div>
+    <span class="btn-text" data-i18n="analyzeBtn">请先上传图片</span>
+  </button>
+
+  <!-- Results -->
+  <div class="results" id="results"></div>
+</main>
+
+<footer>
+  <p data-i18n="footer1">FractureAI — 仅供医学辅助参考 · 不构成医疗诊断</p>
+  <p data-i18n="footer2" style="margin-top:4px">Powered by Claude Vision AI · 免费使用 · 数据不被保存</p>
+</footer>
+
+<script>
+const i18n = {
+  zh:{
+    badge:'AI 医学影像分析',
+    h1:'上传X光片，<br><em>AI立即分析骨折</em>',
+    subtitle:'基于先进AI视觉模型，自动识别骨折位置、类型和严重程度，并在图像上标注出可疑区域。',
+    disclaimer:'⚠️ 本工具仅供辅助参考，不能替代专业医生诊断。检测结果请以执业医师的判断为准。',
+    uploadTitle:'点击或拖拽上传X光影像',
+    uploadSub:'支持X光、CT扫描图像文件',
+    changeImg:'更换图片',
+    analyzeBtn:'开始AI分析',
+    analyzingMsg:'AI正在分析影像...',
+    footer1:'FractureAI — 仅供医学辅助参考 · 不构成医疗诊断',
+    footer2:'Powered by Claude Vision AI · 免费使用 · 数据不被保存',
+  },
+  en:{
+    badge:'AI Medical Imaging',
+    h1:'Upload X-Ray, <br><em>AI Detects Fractures</em>',
+    subtitle:'Advanced AI vision model automatically identifies fracture locations, types and severity, annotating suspicious regions on the image.',
+    disclaimer:'⚠️ For reference only. Not a substitute for professional medical diagnosis. Always consult a licensed physician.',
+    uploadTitle:'Click or drag to upload X-Ray image',
+    uploadSub:'Supports X-ray and CT scan images',
+    changeImg:'Change Image',
+    analyzeBtn:'Start AI Analysis',
+    analyzingMsg:'AI is analyzing the image...',
+    footer1:'FractureAI — Medical reference only · Not a medical diagnosis',
+    footer2:'Powered by Claude Vision AI · Free to use · Data is never stored',
+  },
+  ja:{
+    badge:'AI 医療画像解析',
+    h1:'X線をアップロードして<br><em>AIが骨折を解析</em>',
+    subtitle:'高度なAIビジョンモデルにより、骨折の位置・種類・重症度を自動識別し、疑わしい部位を画像上に標注します。',
+    disclaimer:'⚠️ 本ツールは参考情報の提供のみを目的としており、専門医の診断に代わるものではありません。',
+    uploadTitle:'クリックまたはドラッグしてX線画像をアップロード',
+    uploadSub:'X線・CT画像に対応',
+    changeImg:'画像を変更',
+    analyzeBtn:'AI解析を開始',
+    analyzingMsg:'AIが画像を解析中...',
+    footer1:'FractureAI — 医療参考情報のみ · 医療診断ではありません',
+    footer2:'Powered by Claude Vision AI · 無料利用 · データは保存されません',
+  },
+  ko:{
+    badge:'AI 의료 영상 분석',
+    h1:'X선 업로드 시<br><em>AI가 골절을 분석</em>',
+    subtitle:'고급 AI 비전 모델로 골절 위치, 유형 및 중증도를 자동으로 식별하고 의심 부위를 이미지에 표시합니다.',
+    disclaimer:'⚠️ 이 도구는 참고용으로만 사용되며 전문 의사 진단을 대체할 수 없습니다.',
+    uploadTitle:'클릭하거나 드래그하여 X선 이미지 업로드',
+    uploadSub:'X선 및 CT 스캔 이미지 지원',
+    changeImg:'이미지 변경',
+    analyzeBtn:'AI 분석 시작',
+    analyzingMsg:'AI가 이미지를 분석 중...',
+    footer1:'FractureAI — 의료 참고용만 · 의학적 진단 아님',
+    footer2:'Powered by Claude Vision AI · 무료 사용 · 데이터 저장 안 됨',
+  },
+  es:{
+    badge:'IA Análisis Médico',
+    h1:'Sube tu radiografía,<br><em>IA detecta fracturas</em>',
+    subtitle:'Modelo de visión IA avanzado identifica automáticamente la ubicación, tipo y gravedad de fracturas, anotando regiones sospechosas.',
+    disclaimer:'⚠️ Solo para referencia. No sustituye el diagnóstico médico profesional. Consulte siempre a un médico.',
+    uploadTitle:'Haz clic o arrastra para subir imagen de rayos X',
+    uploadSub:'Admite imágenes de rayos X y tomografías',
+    changeImg:'Cambiar imagen',
+    analyzeBtn:'Iniciar análisis IA',
+    analyzingMsg:'La IA está analizando la imagen...',
+    footer1:'FractureAI — Solo referencia médica · No es diagnóstico médico',
+    footer2:'Powered by Claude Vision AI · Uso gratuito · Los datos no se almacenan',
+  },
+  fr:{
+    badge:'IA Imagerie Médicale',
+    h1:'Téléchargez votre radio,<br><em>l\'IA détecte les fractures</em>',
+    subtitle:'Modèle de vision IA avancé qui identifie automatiquement la localisation, le type et la gravité des fractures.',
+    disclaimer:'⚠️ À titre indicatif uniquement. Ne remplace pas le diagnostic d\'un médecin professionnel.',
+    uploadTitle:'Cliquez ou glissez pour télécharger une radiographie',
+    uploadSub:'Supporte les images de radiographie et de scanner',
+    changeImg:'Changer d\'image',
+    analyzeBtn:'Démarrer l\'analyse IA',
+    analyzingMsg:'L\'IA analyse l\'image...',
+    footer1:'FractureAI — Référence médicale uniquement · Pas un diagnostic',
+    footer2:'Powered by Claude Vision AI · Gratuit · Données non sauvegardées',
+  },
+  de:{
+    badge:'KI Medizinische Bildgebung',
+    h1:'Röntgenbild hochladen,<br><em>KI erkennt Knochenbrüche</em>',
+    subtitle:'Fortschrittliches KI-Sehmodell erkennt automatisch Bruchstellen, Typen und Schweregrade und markiert verdächtige Bereiche.',
+    disclaimer:'⚠️ Nur zur Orientierung. Ersetzt nicht die Diagnose eines Arztes. Konsultieren Sie immer einen Arzt.',
+    uploadTitle:'Klicken oder ziehen Sie das Röntgenbild',
+    uploadSub:'Unterstützt Röntgen- und CT-Bilder',
+    changeImg:'Bild ändern',
+    analyzeBtn:'KI-Analyse starten',
+    analyzingMsg:'KI analysiert das Bild...',
+    footer1:'FractureAI — Nur medizinische Referenz · Keine medizinische Diagnose',
+    footer2:'Powered by Claude Vision AI · Kostenlose Nutzung · Keine Datenspeicherung',
+  },
+  ar:{
+    badge:'تحليل الصور الطبية بالذكاء الاصطناعي',
+    h1:'ارفع صورة الأشعة،<br><em>الذكاء الاصطناعي يكتشف الكسور</em>',
+    subtitle:'نموذج رؤية الذكاء الاصطناعي المتقدم يحدد تلقائيًا مواقع الكسور وأنواعها وشدتها ويضع علامات على المناطق المشبوهة.',
+    disclaimer:'⚠️ للاستخدام المرجعي فقط. لا يغني عن التشخيص الطبي المهني. استشر دائمًا طبيبًا مرخصًا.',
+    uploadTitle:'انقر أو اسحب لرفع صورة الأشعة السينية',
+    uploadSub:'يدعم صور الأشعة السينية والتصوير المقطعي',
+    changeImg:'تغيير الصورة',
+    analyzeBtn:'بدء التحليل بالذكاء الاصطناعي',
+    analyzingMsg:'الذكاء الاصطناعي يحلل الصورة...',
+    footer1:'FractureAI — للمرجع الطبي فقط · ليس تشخيصًا طبيًا',
+    footer2:'Powered by Claude Vision AI · استخدام مجاني · لا يتم حفظ البيانات',
+  }
+};
+
+let currentLang = 'zh';
+let uploadedImage = null;
+let showAnnotations = true;
+let analysisData = null;
+
+function toggleLangMenu(){
+  document.getElementById('langMenu').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.lang-dropdown'))
+    document.getElementById('langMenu').classList.remove('open');
+});
+
+function setLang(lang){
+  currentLang = lang;
+  document.getElementById('langLabel').textContent = {
+    zh:'中文',en:'English',ja:'日本語',ko:'한국어',es:'Español',fr:'Français',de:'Deutsch',ar:'العربية'
+  }[lang];
+  document.documentElement.lang = lang;
+  document.getElementById('langMenu').classList.remove('open');
+
+  const t = i18n[lang] || i18n.zh;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(t[key]) el.innerHTML = t[key];
+  });
+  document.querySelector('html').dir = lang==='ar'?'rtl':'ltr';
+
+  // update analyze btn text based on state
+  const btn = document.getElementById('analyzeBtn');
+  if(uploadedImage && !btn.disabled){
+    document.querySelector('.btn-text').textContent = t.analyzeBtn;
+  } else if(!uploadedImage){
+    document.querySelector('.btn-text').textContent = t.uploadTitle;
+  }
+
+  // re-render results if exist
+  if(analysisData) renderResults(analysisData);
+}
+
+function triggerUpload(){
+  if(!document.getElementById('canvasContainer').style.display || document.getElementById('canvasContainer').style.display==='none'){
+    document.getElementById('fileInput').click();
+  }
+}
+function handleDragOver(e){e.preventDefault();document.getElementById('uploadZone').classList.add('dragover');}
+function handleDragLeave(){document.getElementById('uploadZone').classList.remove('dragover');}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file && file.type.startsWith('image/')) loadFile(file);
+}
+function handleFile(e){
+  const file = e.target.files[0];
+  if(file) loadFile(file);
+}
+function resetImage(e){
+  e.stopPropagation();
+  uploadedImage = null;
+  analysisData = null;
+  document.getElementById('uploadPrompt').style.display='';
+  document.getElementById('canvasContainer').style.display='none';
+  document.getElementById('uploadZone').classList.remove('has-image');
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled=true;
+  document.querySelector('.btn-text').textContent = i18n[currentLang]?.uploadTitle || '请先上传图片';
+  document.getElementById('results').style.display='none';
+  document.getElementById('results').innerHTML='';
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('fileInput').value='';
+}
+
+function loadFile(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const img = new Image();
+    img.onload = ()=>{
+      uploadedImage = img;
+      const canvas = document.getElementById('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img,0,0);
+
+      document.getElementById('uploadPrompt').style.display='none';
+      document.getElementById('canvasContainer').style.display='block';
+      document.getElementById('uploadZone').classList.add('has-image');
+
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled=false;
+      document.querySelector('.btn-text').textContent = i18n[currentLang]?.analyzeBtn || '开始AI分析';
+      document.getElementById('results').style.display='none';
+      document.getElementById('results').innerHTML='';
+      analysisData=null;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyze(){
+  if(!uploadedImage) return;
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled=true;
+  btn.classList.add('loading');
+  document.querySelector('.btn-text').textContent = i18n[currentLang]?.analyzingMsg || '分析中...';
+  document.getElementById('results').style.display='none';
+
+  const progressWrap = document.getElementById('progressWrap');
+  progressWrap.style.display='block';
+  animateProgress();
+
+  try{
+    const canvas = document.createElement('canvas');
+    canvas.width = uploadedImage.naturalWidth;
+    canvas.height = uploadedImage.naturalHeight;
+    canvas.getContext('2d').drawImage(uploadedImage,0,0);
+    const base64 = canvas.toDataURL('image/jpeg',0.85).split(',')[1];
+
+    const systemPrompt = `You are an expert radiologist AI assistant specializing in fracture detection. Analyze the provided medical image (X-ray or CT scan). 
+
+Respond ONLY with a valid JSON object (no markdown, no preamble) in this exact structure:
+{
+  "hasFracture": true|false|"uncertain",
+  "confidence": 0-100,
+  "bodyPart": "detected body part in English",
+  "severity": "mild"|"moderate"|"severe"|"none"|"uncertain",
+  "fractures": [
+    {
+      "id": 1,
+      "label": "fracture type description",
+      "x_percent": 0-100,
+      "y_percent": 0-100,
+      "width_percent": 5-30,
+      "height_percent": 5-30,
+      "confidence": 0-100,
+      "color": "#ef4444"|"#f59e0b"|"#3b82f6"
+    }
+  ],
+  "findings": ["finding 1", "finding 2"],
+  "recommendation": "brief recommendation",
+  "imageQuality": "good"|"fair"|"poor"
+}
+
+Guidelines:
+- If no fracture detected, fractures array should be empty
+- Bounding box coordinates are percentage of image dimensions (0-100)
+- color: #ef4444 for definite fracture, #f59e0b for suspected/uncertain, #3b82f6 for reference area
+- Provide 2-4 findings
+- Be medically accurate but acknowledge this is AI analysis, not professional diagnosis
+- If the image is NOT a medical X-ray/CT, set hasFracture to false and explain in findings`;
+
+    const userPrompt = `Please analyze this medical image for fractures. Respond in ${currentLang === 'zh' ? 'Chinese (Simplified)' : currentLang === 'ja' ? 'Japanese' : currentLang === 'ko' ? 'Korean' : currentLang === 'ar' ? 'Arabic' : currentLang === 'es' ? 'Spanish' : currentLang === 'fr' ? 'French' : currentLang === 'de' ? 'German' : 'English'} for the label, findings, and recommendation fields.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system: systemPrompt,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:base64}},
+            {type:'text',text:userPrompt}
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    let text = data.content?.map(c=>c.text||'').join('').trim();
+    text = text.replace(/```json|```/g,'').trim();
+    const result = JSON.parse(text);
+    analysisData = result;
+    drawAnnotations(result);
+    renderResults(result);
+  }catch(err){
+    console.error(err);
+    renderError();
+  }finally{
+    btn.disabled=false;
+    btn.classList.remove('loading');
+    document.querySelector('.btn-text').textContent = i18n[currentLang]?.analyzeBtn || '重新分析';
+    document.getElementById('progressWrap').style.display='none';
+  }
+}
+
+function animateProgress(){
+  const fill = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+  const msgs = currentLang==='zh'
+    ? ['加载模型...','处理图像...','检测骨折...','生成报告...']
+    : currentLang==='ja'
+    ? ['モデル読込...','画像処理...','骨折検出...','レポート生成...']
+    : ['Loading model...','Processing image...','Detecting fractures...','Generating report...'];
+  let p=0,step=0;
+  fill.style.width='0%';
+  const interval = setInterval(()=>{
+    p += Math.random()*8+2;
+    if(p>90) p=90;
+    fill.style.width = p+'%';
+    const idx = Math.min(Math.floor(p/25),msgs.length-1);
+    label.textContent = msgs[idx];
+  },400);
+  return interval;
+}
+
+function drawAnnotations(result){
+  if(!uploadedImage) return;
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(uploadedImage,0,0);
+
+  if(!result.fractures || result.fractures.length===0) return;
+
+  result.fractures.forEach(f=>{
+    const x = f.x_percent/100 * canvas.width;
+    const y = f.y_percent/100 * canvas.height;
+    const w = f.width_percent/100 * canvas.width;
+    const h = f.height_percent/100 * canvas.height;
+
+    // Glow
+    ctx.shadowColor = f.color||'#ef4444';
+    ctx.shadowBlur = 15;
+    ctx.strokeStyle = f.color||'#ef4444';
+    ctx.lineWidth = Math.max(2, canvas.width/200);
+    ctx.setLineDash([8,4]);
+    ctx.strokeRect(x,y,w,h);
+    ctx.setLineDash([]);
+    ctx.shadowBlur=0;
+
+    // Fill
+    ctx.fillStyle = (f.color||'#ef4444')+'28';
+    ctx.fillRect(x,y,w,h);
+
+    // Corner marks
+    const cs = Math.min(w,h)*0.2;
+    ctx.strokeStyle = f.color||'#ef4444';
+    ctx.lineWidth = Math.max(3, canvas.width/150);
+    ctx.shadowColor = f.color||'#ef4444';
+    ctx.shadowBlur = 8;
+    [[x,y,1,1],[x+w,y,-1,1],[x,y+h,1,-1],[x+w,y+h,-1,-1]].forEach(([cx,cy,dx,dy])=>{
+      ctx.beginPath();ctx.moveTo(cx+dx*cs,cy);ctx.lineTo(cx,cy);ctx.lineTo(cx,cy+dy*cs);ctx.stroke();
+    });
+    ctx.shadowBlur=0;
+
+    // Label
+    const lfs = Math.max(12, canvas.width/60);
+    ctx.font = `bold ${lfs}px Sora, sans-serif`;
+    const lw = ctx.measureText(f.label).width + 16;
+    const lh = lfs + 10;
+    const lx = Math.min(x, canvas.width - lw - 4);
+    const ly = y - lh - 4 < 0 ? y + 4 : y - lh - 4;
+    ctx.fillStyle = f.color||'#ef4444';
+    ctx.beginPath();
+    ctx.roundRect(lx,ly,lw,lh,4);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillText(f.label, lx+8, ly+lh-6);
+  });
+}
+
+function renderResults(result){
+  const el = document.getElementById('results');
+  const t = currentLang;
+  const labels = {
+    zh:{resultTitle:'分析结果',bodyPart:'检测部位',confidence:'置信度',severity:'严重程度',quality:'图像质量',findingsTitle:'影像所见',annotationsTitle:'标注区域',recTitle:'建议',warnTitle:'免责声明',warnText:'本分析由AI生成，仅供参考。医疗诊断必须由执业医师作出。请勿据此自行处理伤情。',good:'良好',fair:'一般',poor:'较差',none:'无骨折',mild:'轻度',moderate:'中度',severe:'重度',uncertain:'不确定',hasFracture:'发现骨折',noFracture:'未发现骨折'},
+    en:{resultTitle:'Analysis Result',bodyPart:'Body Part',confidence:'Confidence',severity:'Severity',quality:'Image Quality',findingsTitle:'Imaging Findings',annotationsTitle:'Annotated Regions',recTitle:'Recommendation',warnTitle:'Disclaimer',warnText:'This analysis is AI-generated for reference only. Medical diagnosis must be made by a licensed physician. Do not treat injuries based on this result alone.',good:'Good',fair:'Fair',poor:'Poor',none:'No fracture',mild:'Mild',moderate:'Moderate',severe:'Severe',uncertain:'Uncertain',hasFracture:'Fracture detected',noFracture:'No fracture detected'},
+    ja:{resultTitle:'解析結果',bodyPart:'検出部位',confidence:'信頼度',severity:'重症度',quality:'画像品質',findingsTitle:'画像所見',annotationsTitle:'注釈領域',recTitle:'推奨事項',warnTitle:'免責事項',warnText:'この分析はAIによるものであり、参考情報のみです。医療診断は必ず医師が行ってください。',good:'良好',fair:'普通',poor:'不良',none:'骨折なし',mild:'軽度',moderate:'中度',severe:'重度',uncertain:'不確定',hasFracture:'骨折検出',noFracture:'骨折なし'},
+    ko:{resultTitle:'분석 결과',bodyPart:'검출 부위',confidence:'신뢰도',severity:'중증도',quality:'이미지 품질',findingsTitle:'영상 소견',annotationsTitle:'주석 영역',recTitle:'권고사항',warnTitle:'면책 조항',warnText:'이 분석은 AI로 생성된 참고 정보입니다. 의료 진단은 반드시 의사가 내려야 합니다.',good:'양호',fair:'보통',poor:'불량',none:'골절 없음',mild:'경증',moderate:'중등도',severe:'중증',uncertain:'불확실',hasFracture:'골절 감지됨',noFracture:'골절 미감지'},
+    es:{resultTitle:'Resultado del Análisis',bodyPart:'Parte del cuerpo',confidence:'Confianza',severity:'Gravedad',quality:'Calidad de imagen',findingsTitle:'Hallazgos',annotationsTitle:'Regiones anotadas',recTitle:'Recomendación',warnTitle:'Descargo de responsabilidad',warnText:'Este análisis es generado por IA solo como referencia. El diagnóstico médico debe ser realizado por un médico.',good:'Buena',fair:'Regular',poor:'Mala',none:'Sin fractura',mild:'Leve',moderate:'Moderada',severe:'Grave',uncertain:'Incierto',hasFracture:'Fractura detectada',noFracture:'Sin fractura detectada'},
+    fr:{resultTitle:'Résultat d\'analyse',bodyPart:'Partie du corps',confidence:'Confiance',severity:'Sévérité',quality:'Qualité d\'image',findingsTitle:'Constatations',annotationsTitle:'Régions annotées',recTitle:'Recommandation',warnTitle:'Avertissement',warnText:'Cette analyse est générée par IA à titre indicatif uniquement. Le diagnostic médical doit être effectué par un médecin.',good:'Bonne',fair:'Correcte',poor:'Mauvaise',none:'Pas de fracture',mild:'Légère',moderate:'Modérée',severe:'Grave',uncertain:'Incertain',hasFracture:'Fracture détectée',noFracture:'Aucune fracture'},
+    de:{resultTitle:'Analyseergebnis',bodyPart:'Körperteil',confidence:'Konfidenz',severity:'Schweregrad',quality:'Bildqualität',findingsTitle:'Befunde',annotationsTitle:'Markierte Bereiche',recTitle:'Empfehlung',warnTitle:'Haftungsausschluss',warnText:'Diese Analyse wurde durch KI erstellt und dient nur als Referenz. Die medizinische Diagnose muss von einem Arzt gestellt werden.',good:'Gut',fair:'Mäßig',poor:'Schlecht',none:'Kein Bruch',mild:'Leicht',moderate:'Mäßig',severe:'Schwer',uncertain:'Unsicher',hasFracture:'Bruch erkannt',noFracture:'Kein Bruch erkannt'},
+    ar:{resultTitle:'نتيجة التحليل',bodyPart:'الجزء المفحوص',confidence:'الثقة',severity:'الشدة',quality:'جودة الصورة',findingsTitle:'النتائج الإشعاعية',annotationsTitle:'المناطق المحددة',recTitle:'التوصية',warnTitle:'إخلاء المسؤولية',warnText:'هذا التحليل مُنشأ بالذكاء الاصطناعي للمرجع فقط. يجب أن يتم التشخيص الطبي من قبل طبيب مرخص.',good:'جيدة',fair:'مقبولة',poor:'ضعيفة',none:'لا كسور',mild:'خفيف',moderate:'متوسط',severe:'شديد',uncertain:'غير مؤكد',hasFracture:'تم اكتشاف كسر',noFracture:'لا يوجد كسر'}
+  };
+  const L = labels[t] || labels.en;
+  const hasFrac = result.hasFracture;
+  const badgeClass = hasFrac===true?'positive':hasFrac===false?'negative':'uncertain';
+  const badgeText = hasFrac===true?L.hasFracture:hasFrac===false?L.noFracture:L.uncertain;
+
+  const sevColor = {none:'var(--accent3)',mild:'#fbbf24',moderate:'#f97316',severe:'var(--danger)',uncertain:'var(--text3)'}[result.severity||'uncertain'] || 'var(--text3)';
+  const confColor = result.confidence>80?'var(--accent3)':result.confidence>60?'#fbbf24':'var(--danger)';
+
+  let annotationsHtml = '';
+  if(result.fractures && result.fractures.length>0){
+    annotationsHtml = `
+    <div class="analysis-box">
+      <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>${L.annotationsTitle}</h3>
+      ${result.fractures.map(f=>`
+        <div class="annotation-item">
+          <div class="ann-color" style="background:${f.color||'#ef4444'}"></div>
+          <div class="ann-label">${f.label}</div>
+          <div class="ann-conf">${f.confidence}%</div>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  let findingsHtml = '';
+  if(result.findings && result.findings.length>0){
+    const dotColors=['#3b82f6','#06b6d4','#10b981','#f59e0b'];
+    findingsHtml = `
+    <div class="analysis-box">
+      <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${L.findingsTitle}</h3>
+      ${result.findings.map((f,i)=>`
+        <div class="finding-item">
+          <div class="finding-dot" style="background:${dotColors[i%4]}"></div>
+          <div class="finding-text">${f}</div>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="results-header">
+      <h2>${L.resultTitle}</h2>
+      <div class="result-badge ${badgeClass}">${badgeText}</div>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-label">${L.bodyPart}</div>
+        <div class="info-card-value" style="font-size:1rem">${result.bodyPart||'—'}</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">${L.confidence}</div>
+        <div class="info-card-value" style="color:${confColor}">${result.confidence||0}%</div>
+        <div class="conf-bar-wrap"><div class="conf-bar"><div class="conf-bar-fill" id="confFill" style="width:0%;background:${confColor}"></div></div></div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">${L.severity}</div>
+        <div class="info-card-value" style="color:${sevColor};font-size:1rem">${L[result.severity||'uncertain']||result.severity}</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">${L.quality}</div>
+        <div class="info-card-value" style="font-size:1rem">${L[result.imageQuality||'fair']||result.imageQuality}</div>
+      </div>
+    </div>
+    ${annotationsHtml}
+    ${findingsHtml}
+    ${result.recommendation?`
+    <div class="analysis-box">
+      <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${L.recTitle}</h3>
+      <div class="analysis-text">${result.recommendation}</div>
+    </div>`:''}
+    <div class="warn-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>${L.warnText}</span>
+    </div>
+  `;
+  el.style.display='block';
+
+  setTimeout(()=>{
+    const fill = document.getElementById('confFill');
+    if(fill) fill.style.width = (result.confidence||0)+'%';
+  },100);
+}
+
+function renderError(){
+  const el = document.getElementById('results');
+  el.innerHTML = `<div class="warn-box">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>Analysis failed. Please check your network connection and try again. / 分析失败，请检查网络连接后重试。</span>
+  </div>`;
+  el.style.display='block';
+}
+</script>
+</body>
+</html>
